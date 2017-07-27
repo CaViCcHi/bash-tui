@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+##
+# LDD to TAR
+#
+# pass me a binary file as $1 and I'll give you back a tar with the binary and its libraries
+
+## So you have to show both
+. /usr/lib/bash-tui/say.sh
+. /usr/lib/bash-tui/custom_functions.sh
+. /usr/lib/bash-tui/bashparms.sh
+
+_L_l_=30
+
+Bb="$1"
+[ -z "$Bb" ] && say "You forgot to pass me a parameter..." error && exit 1
+[ ! -e "$Bb" ] && Bn=$(which "$Bb" 2>/dev/null) && say "I assume you meant '$Bn'" && Bb="$Bn"
+[ ! -e "$Bb" ] && say "I cannot find the binary file you want '$Bb'" error && exit 1
+
+Tp=$(pwd)
+lib=lib
+[ -d /usr/lib64 ] && lib=lib64
+
+[ -z $2 ] && Bf=$(basename ${Bb}).tar || Bf=$2
+
+addsed=
+( [ -h /lib ] || [ -h /lib64 ] ) && addsed=" | sed 's|^/${lib}|/usr/${lib}|g'"
+
+say "declare -a Bl=( eval \"ldd '${Bb}' | tail -n +2 | xargs -n1 | grep ${lib} $addsed\")" debug
+
+# Get library list
+declare -a Bl=( $(eval "ldd '${Bb}' | tail -n +2 | xargs -n1 | grep ${lib} $addsed") )
+[ -z "$Bl" ] && say "Issues with ldd output" error && exit 1 
+
+# Parse em
+updatedb # well...
+declare -a Bs=()
+for l in "${Bl[@]}";do
+	declare -a uno=()
+	[ "${l:0:1}" = '/' ] 			&& [ -e "$l" ] && uno=( "$l" ) 			# It's already perfecto
+	[ -e "/${lib}/$l" ]				&& uno=( "/${lib}/$l" ) 				# in /lib
+	[ -e "/usr/${lib}/$l" ]			&& uno=( "/usr/${lib}/$l" ) 			# in /usr/lib
+	[ -e "/usr/local/${lib}/$l" ]	&& uno=( "/usr/local/${lib}/$l" ) 		# in /usr/local/lib
+	[ -z "${uno[*]}" ] 				&& uno=( $(locate "$l" | grep -E '^/lib|^/usr|^/var') ) #- we hope to get only one
+	[ -z "${uno[*]}" ] 				&& uno=( $(locate "$l") ) 								#- Yeah I just did that
+	[ -z "${uno[*]}" ] 				&& say "Yeah, not possible... '$l' is not here... so '$Bb' don't work right..." warning && continue #- I mean maybe you know what you're doing.
+	# ok but what if I get more than one?
+	for pl in "${uno[@]}"; do
+		[ -h $pl ] && Bs+=( "$(readlink -fsq "$pl")" ) 
+		Bs+=( $pl )
+	done
+done
+(( ! ${#Bs[*]} )) && say "Issues with readlink output '${Bs[*]}'" error && exit 1
+
+# List it all out and sort out duplicates
+declare -a Bfl=( $(/bin/ls ${Bs[*]} | sort -u) )
+[ -z "$Bfl" ] && say "Issues '/bin/ls ${Bs[*]} | sort -u'" && exit 1
+for u in ${Bfl[@]};do
+	say "Including: $u" debug
+done
+
+unset -v Bl
+unset -v Bs
+
+# TAR ... IT ... UP!
+isNotParm no-tar && tar cvf "${Tp}/${Bf}" "${Bb}" ${Bfl[*]} &>/dev/null && say "The file '${Tp}/${Bf}' was created succesfully" $green; exit 0 || say "There was a problem creating '${Tp}/${Bf}'"; exit 1
