@@ -1,22 +1,70 @@
 #!/usr/bin/env bash
-## TODO: we need to use a larged depth of color
-Bc="\e[%d;%dm"
-Bph="Cantami o diva del pelide Achille l'ira funesta..."
-getcolor() { _c=$(printf $Bc $1 $2); [ -z $3 ] && echo "${_c}$Bph : $1 $2${NC}" || eval "export ${3}=\$_c";  }
+##
+# COLORS
+Bctop=256
+NC="\e[0;0m" ## NC doesn't exist on the 256 table
+# Initial Mapping
+declare -a Bclrs
+for c in $(seq 0 ${Bctop}); do
+  Bclrs[$c]=C${c}
+done
+# Get Colors
+colorget() { 
+  Bc="\e[38;5;%dm"
+  Bph="Cantami o diva del pelide Achille l'ira funesta..."
+  _c=$(printf $Bc $1)
+  [ -z $2 ] && echo -e "${_c}$Bph : ${Bclrs[$1]} ${NC}" && return 1
+  eval "export ${2}=\$_c";  
+}
+# Set names
+colorset() {
+  [ -z $1 ] && echo "ERROR: I need a color id as first parameter" && return 1
+  [ -z $2 ] && echo "ERROR: I need a color name as second parameter" && return 1
 
-getcolor 0 31   red
-getcolor 1 31   RED
-getcolor 0 34   blue
-getcolor 1 34   BLUE
-getcolor 0 36   cyan
-getcolor 1 36   CYAN
-getcolor 0 32   green
-getcolor 1 32   GREEN
-getcolor 0 33   yellow
-getcolor 1 33   YELLOW
-getcolor 1 1    bold
-getcolor 0 35   purple
+  Bclrs[$1]=$2
+}
+# Show rainbow
+colorshow() {
+  for c in $(seq 0 ${Bctop}); do
+    colorget $c
+  done
+}
+# Specify colors, I mean if you know the names...
+colorset 0    black
+colorset 1    dred
+colorset 2    dgreen
+colorset 3    dyellow
+colorset 4    dblue
+colorset 5    dmagenta
+colorset 6    dcyan
+colorset 7    lgrey
+colorset 8    dgrey
+colorset 9    red
+colorset 10   green 
+colorset 11   yellow 
+colorset 12   blue
+colorset 13   magenta 
+colorset 14   cyan 
+colorset 15   white 
+colorset 20   dblue
 
-getcolor 0 0    NC      ## No color
+colorset 52   maroon
 
-blu="\\033[48;5;95;38;5;214m"
+colorset 82   lgreen
+
+colorset 90   purple
+colorset 93   violet
+colorset 100  gold
+colorset 201  pink
+colorset 202  dorange
+colorset 208  orange
+colorset 214  lorange
+
+colorset 228  lyellow
+
+colorset 244  grey
+
+# now set them
+for cc in $(seq 0 ${Bctop}); do
+  colorget $cc ${Bclrs[$cc]}
+done

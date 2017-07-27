@@ -5,16 +5,16 @@
 # pass me a binary file as $1 and I'll give you back a tar with the binary and its libraries
 
 ## So you have to show both
-. /usr/lib/bash-tui/say.sh
-. /usr/lib/bash-tui/custom_functions.sh
-. /usr/lib/bash-tui/bashparms.sh
+. ${BASHTUI_LIB}/say.sh
+. ${BASHTUI_LIB}/custom_functions.sh
+. ${BASHTUI_LIB}/bashparms.sh
 
 _L_l_=30
 
 Bb="$1"
-[ -z "$Bb" ] && say "You forgot to pass me a parameter..." error && exit 1
-[ ! -e "$Bb" ] && Bn=$(which "$Bb" 2>/dev/null) && say "I assume you meant '$Bn'" && Bb="$Bn"
-[ ! -e "$Bb" ] && say "I cannot find the binary file you want '$Bb'" error && exit 1
+[ -z "$Bb" ]    && say "You forgot to pass me a parameter..." error && exit 1
+[ ! -e "$Bb" ]  && Bn=$(which "$Bb" 2>/dev/null) && say "I assume you meant '$Bn'" && Bb="$Bn"
+[ ! -e "$Bb" ]  && say "I cannot find the binary file you want '$Bb'" error && exit 1
 
 Tp=$(pwd)
 lib=lib
@@ -36,13 +36,13 @@ updatedb # well...
 declare -a Bs=()
 for l in "${Bl[@]}";do
 	declare -a uno=()
-	[ "${l:0:1}" = '/' ] 			&& [ -e "$l" ] && uno=( "$l" ) 			# It's already perfecto
-	[ -e "/${lib}/$l" ]				&& uno=( "/${lib}/$l" ) 				# in /lib
-	[ -e "/usr/${lib}/$l" ]			&& uno=( "/usr/${lib}/$l" ) 			# in /usr/lib
-	[ -e "/usr/local/${lib}/$l" ]	&& uno=( "/usr/local/${lib}/$l" ) 		# in /usr/local/lib
-	[ -z "${uno[*]}" ] 				&& uno=( $(locate "$l" | grep -E '^/lib|^/usr|^/var') ) #- we hope to get only one
-	[ -z "${uno[*]}" ] 				&& uno=( $(locate "$l") ) 								#- Yeah I just did that
-	[ -z "${uno[*]}" ] 				&& say "Yeah, not possible... '$l' is not here... so '$Bb' don't work right..." warning && continue #- I mean maybe you know what you're doing.
+	[ "${l:0:1}" = '/' ] 			    && [ -e "$l" ] && uno=( "$l" ) 			  # It's already perfecto
+	[ -e "/${lib}/$l" ]			      && uno=( "/${lib}/$l" ) 				      # in /lib
+	[ -e "/usr/${lib}/$l" ]			  && uno=( "/usr/${lib}/$l" ) 			    # in /usr/lib
+	[ -e "/usr/local/${lib}/$l" ] && uno=( "/usr/local/${lib}/$l" ) 		# in /usr/local/lib
+	[ -z "${uno[*]}" ] 				    && uno=( $(locate "$l" | grep -E '^/lib|^/usr|^/var') ) #- we hope to get only one
+	[ -z "${uno[*]}" ] 				    && uno=( $(locate "$l") ) 						#- Yeah I just did that
+	[ -z "${uno[*]}" ] 				    && say "Yeah, not possible... '$l' is not here... so '$Bb' don't work right..." warning && continue #- I mean maybe you know what you're doing.
 	# ok but what if I get more than one?
 	for pl in "${uno[@]}"; do
 		[ -h $pl ] && Bs+=( "$(readlink -fsq "$pl")" ) 
