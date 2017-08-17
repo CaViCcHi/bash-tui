@@ -26,12 +26,11 @@ WHO=$1;
 CHECK="MAC_${WHO^^}"
 
 	if [[ -z $WHO ]]; then
-		echo "Well I need the name of who you want to wake up";
+		say "Well I need the name of who you want to wake up";
 		return 1;
 	fi
-
-	if [[ -z "${!CHECK}" ]]; then
-		echo -e "I have no idea who '$WHO' is... are you sure?"
+	if [[ -z "${CHECK+x}" ]]; then
+		say "I have no idea who '$WHO' is... are you sure?"
 		return 1;
 	fi
 

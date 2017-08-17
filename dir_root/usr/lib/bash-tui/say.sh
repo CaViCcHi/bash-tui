@@ -49,7 +49,7 @@ say()
 	if [ ! -z $2 ];then
 		if [ "$2" = "debug" ]; then
 			l=30
-			c=${BLUE}
+			c=${blue}
 			s=DEBUG
 		elif [ "$2" = "error" ]; then
 			l=0
@@ -62,6 +62,7 @@ say()
 		elif [ "$2" = "logonly" ]; then
 			l=0
 			lo=true
+    ## TODO: this needs to be fixed cause now the colors are more complicated
 		elif [[ ${2:2:2} =~ [01]+\; && ${2:6} = 'm' ]]; then
 			c=$2
 		else

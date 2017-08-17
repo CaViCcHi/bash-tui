@@ -14,7 +14,7 @@ colorget() {
   Bph="Cantami o diva del pelide Achille l'ira funesta..."
   _c=$(printf $Bc $1)
   [ -z $2 ] && echo -e "${_c}$Bph : ${Bclrs[$1]} ${NC}" && return 1
-  eval "export ${2}=\$_c";  
+  [ "$2" != "C$1"  ] && eval "export ${2}=\$_c";  
 }
 # Set names
 colorset() {
@@ -29,12 +29,24 @@ colorshow() {
     colorget $c
   done
 }
+# Export your customs
+colorexport() {
+  for c in $(seq 0 ${Bctop}); do
+    [ "${Bclrs[$c]}" != "C${c}" ] && echo "colorset $c ${Bclrs[$c]}"
+  done
+}
+# Cause I said so
+colorreset() {
+ # I'll come back to this 
+  say "I am not ready yet..." warning
+}
+
 # Specify colors, I mean if you know the names...
 colorset 0    black
 colorset 1    dred
 colorset 2    dgreen
 colorset 3    dyellow
-colorset 4    dblue
+colorset 4    blue
 colorset 5    dmagenta
 colorset 6    dcyan
 colorset 7    lgrey
@@ -42,7 +54,7 @@ colorset 8    dgrey
 colorset 9    red
 colorset 10   green 
 colorset 11   yellow 
-colorset 12   blue
+colorset 12   lblue
 colorset 13   magenta 
 colorset 14   cyan 
 colorset 15   white 
