@@ -2,8 +2,6 @@
 ##
 #
 
-set -x
-
 ### DEBUG???
 _D_=
 ############
@@ -40,8 +38,10 @@ _L_hor_=
 # b => Initial Log block :: Date - status string
 # l => Log Level : read up on _L_l_
 say()
-{		
+{	
 	[ -z ${_L_l_} ] && echo -e "$1" && return 0 #- Okay... geee...
+  # This works with BASH-TUI
+  [ -z ${BTUI_n} ] && [ -e $BTUI_cache ] && . $BTUI_cache
 	#Default
   x= # Control variable
 	c= # El Colore
@@ -79,8 +79,8 @@ say()
       c=$2 
       x=40
     # this is the color "red"
-    elif [ ! -z ${Bclrs[${2}]+_} ]; then
-      c=${Bclrs[${2}]} 
+    elif [ ! -z ${BTUI_s[${2}]+_} ]; then
+      c=$(printf $BTUI_cp ${BTUI_s[${2}]})
       x=40
 		else
 			s="$2"
@@ -90,13 +90,12 @@ say()
   # If you have a third parameter
   for me in 1; do # An old fisherman's trick
 	if [ ! -z $3 ]; then
-echo "-3->$3<-"
-    ## TODO: numbers cannot be used as color name in colorset
-    [ -z $clr ] && [[ "${3}" =~ ^[0-9]*$ ]] && l=$3 && continue # I didn't have a color but a number
+    ## numbers cannot be used as color name in colorset
+    [ -z $clr ] && [[ ${3} =~ ^[0-9]*$ ]] && l=$3 && continue # I didn't have a color but a number
     # And this third parameter is a color or is named like one :D
     # the assignments in the if happen only if the first one is met, bite me
     [[ ${3} =~ [[0-9\;]*m$ ]] && clr=$3
-    [ ! -z ${Bclrs[${3}]+_} ] && clr=${Bclrs[${3}]} 
+    [ ! -z ${BTUI_s[${3}]+_} ] && clr=$(printf $BTUI_cp ${BTUI_s[${3}]})
     [ -z $clr ] && continue ## Dude I don't know what to do with it
     # I have a signal already let's recolor it
     ( [ $x -eq 1 ] || [ $x -eq 20 ] ) && c=$clr && continue # I like 'continue' better, lexically
@@ -112,11 +111,10 @@ echo "-3->$3<-"
   # for now this is just a color
   for me in 1; do # An old fisherman's trick
 	if [ ! -z $4 ]; then
-echo "-4->$4<-"
     # And this third parameter is a color or is named like one :D
     # the assignments in the if happen only if the first one is met, bite me
     [[ ${4} =~ [[0-9\;]*m$ ]] && clr=$4
-    [ ! -z ${Bclrs[${4}]+_} ] && clr=${Bclrs[${4}]} 
+    [ ! -z ${BTUI_s[${4}]+_} ] && clr=$(printf $BTUI_cp ${BTUI_s[${4}]})
     [ -z $clr ] && continue ## Dude I don't know what to do with it
     # I'm not gonna play this game
     [ ! -z $c ] && [ ! -z $q ] && continue 
