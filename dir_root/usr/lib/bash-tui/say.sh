@@ -37,18 +37,18 @@ _L_hor_=
 # m => Final message
 # b => Initial Log block :: Date - status string
 # l => Log Level : read up on _L_l_
-say()
+function say()
 {	
 	[ -z ${_L_l_} ] && echo -e "$1" && return 0 #- Okay... geee...
   # This works with BASH-TUI
   [ -z ${BTUI_n} ] && [ -e $BTUI_cache ] && . $BTUI_cache
 	#Default
-  x= # Control variable
-	c= # El Colore
-	s="${_L_hor_}" # Signal/Log level
-	l=10 #- info
-	b="[$(date '+%Y-%m-%d %H:%M:%S')]" #- What the log looks like
-	m=$1
+  local x= # Control variable
+	local c= # El Colore
+	local s="${_L_hor_}" # Signal/Log level
+	local l=10 #- info
+	local b="[$(date '+%Y-%m-%d %H:%M:%S')]" #- What the log looks like
+	local m=$1
 	# Parameters
 	if [ ! -z "${2}" ];then
 		if [ "${2}" = "debug" ]; then
@@ -130,7 +130,8 @@ say()
 	# Speaking
 	[ ! $lo ] && echo -e "$m" 
 	# Logging
-	echo -e "${b} ${m}${NC}" >> "${_L_dir_}/${_L_file_}"
+	echo -e "${b} ${m}" >> "${_L_dir_}/${_L_file_}"
+
 }
 
 say_clean()

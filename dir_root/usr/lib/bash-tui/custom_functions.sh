@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
+REX_repos='\.svn|\.git';
+
 function allfiles
 {
 ARG=$1
-    find $(pwd) -type f | grep -v svn | grep "$1" --color
+    find $(pwd) -type f | grep -vE $REX_repos | grep "$1" --color
 }
 function alldirs
 {
-    find $(pwd) -type d | grep -v svn
+    find $(pwd) -type d | grep -vE $REX_repos
 }
 
 function llocate
