@@ -42,6 +42,8 @@ done
   #echo "BTUI_c="
   echo "declare -A BTUI_s" >> $BTUI_cache
   echo "declare -a BTUI_n" >> $BTUI_cache
+  echo "BTUI_s=" >> $BTUI_cache
+  echo "BTUI_n=" >> $BTUI_cache
   # Easy Mapping
   for c in $(seq 0 ${BTUI_ctop}); do
     ## Your current save
