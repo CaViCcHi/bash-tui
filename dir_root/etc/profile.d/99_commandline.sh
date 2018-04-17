@@ -9,7 +9,7 @@
 . ${BASHTUI_LIB}/say.sh
 . /etc/bash-tui.conf
 
-( [ -z "$BASHTUI_cline_repo_ENABLED" ] || [[ "${BASHTUI_cline_repo_ENABLED}" =~ 0|false ]] ) && return 0 ## oh well... I promise I'm good :(
+( [ -z "$BASHTUI_cline_repo_ENABLED" ] || [[ "${BASHTUI_cline_repo_ENABLED}" =~ 0|false ]] ) && export PS1="$BASHTUI_PS1" && return 0 ## oh well... I promise I'm good :(
 
 ## TOP OBJs
 ###
