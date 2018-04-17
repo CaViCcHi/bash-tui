@@ -22,7 +22,7 @@ _P_cm="$(caller 0 | awk '{print $2}')"
 [ -n "$_P_DEBUG_" ] && say "[ -->]all parms '$*' && '${!_BP[*]}' ++ '$(caller 0)' \$?='$?'" $cyan #- DEBUG
 
 if [ -n "$*" ];then
-	declare -a tp=( $* )
+	declare -a tp=( "$@" )
 	declare -a _PP=();
 	_endparms=
 	qty=${#tp[*]}
