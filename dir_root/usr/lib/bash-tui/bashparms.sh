@@ -32,7 +32,7 @@ if [ -n "$*" ];then
 			[ "${#tp[$j]}" -eq 2 ] && _endparms=true && continue
 			if [[ "${tp[$j]}" =~ '=' ]]; then
 				# Then probably it's a --param=something
-				read k v <<< $(echo "${tp[$j]:2}" | sed 's|=| |g')
+				read k v <<< $(echo "${tp[$j]:2}" | sed 's|=| |')
 			else
 				# I would check the next param to see if it's a value or just another parm		
 				# so you keep -a AND the following parameter AND also the parameter by itself, why? shits and giggles I guess...
