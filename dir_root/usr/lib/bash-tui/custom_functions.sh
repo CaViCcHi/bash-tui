@@ -21,6 +21,8 @@ NOW=$(pwd)
         locate -d ${LOCATEDBDIR}locate_local.db $1
 }
 
+
+
 function wakeup
 {
 CMD='/sbin/ether-wake';
@@ -41,7 +43,27 @@ CHECK="MAC_${WHO^^}"
 
 function unrpm
 {
-    rpm2cpio $1 | cpio -ivdm
+    basedir=$(pwd)
+    therpm=$1
+    subdir=$(rpm -qp $1)
+    (( $? )) && say "There was an issue with your command: $0, is $therpm an rpm?" error && return 1
+    # With a second parameter I expect a path
+    # If absolute, well absolute, if relative... well relative.
+    if [ ! -z "$subdir" ];then
+        if [ -d "$subdir" ];then
+            say "ERROR: Dir "$subdir" exists, stopping..." error && return 1
+        else
+            say "I am about to make the directory $subdir to export $therpm" $yellow
+            sleep 5
+            mkdir -p "$subdir"
+        fi
+    fi
+    cd "$subdir"
+    rpm2cpio "$basedir/$therpm" | cpio -ivdm
+    (( $? )) && say "ERROR: There was a probleme extracting the rpm, check for errors above." error && return 1
+    cd "$basedir"
+    say "Extracted in: $basedir/$subdir" $green
+
 }
 function tslog
 {
@@ -113,15 +135,114 @@ function frpm
 
 }
 
+## PERLOCATE
+##
+## locates perl module given Switchvox::API::Users::RapidDial::Entries (sometimes I don't feel like replacing manually)
+# Usage: perlocate Switchvox::API::Users::RapidDial::Entries
+perlocate()
+{
+  l="${1//:://}";
+  locate ${l}
+  (( $? )) && echo "Maybe the last one is a method" && locate $(dirname ${l})
+}
 
-# Blame a file
+##
+## Tracks speed and traffic for an interface given
+netspeed()
+{
+    ## if you don't give me an interface I'll get what I think is default
+    [ ! -z "$1" ] && eth=$1 || eth=$(ip -4 route list 0/0 | awk '{print $5}' | head -n1)
+    RX=/sys/class/net/$eth/statistics/rx_bytes
+    TX=/sys/class/net/$eth/statistics/tx_bytes
+
+    ## TODO pretty it up...
+    declare -A Ts=(
+        [K]=1024
+        [M]=$((1024 * 1024))
+    )
+    declare -a To=( M K )
+
+    ( [ ! -e ${RX} ] || [ ! -e ${TX} ] ) && say "Make sure $eth is correct..." error && exit 1
+
+    TIME_start=$(date +%s)
+
+    TX_start=$(cat $TX | xargs)
+    TX_speed=0
+    TX_pretty=0b
+    TX_weight=0
+    TX_end=0
+
+    RX_start=$(cat $RX | xargs)
+    TX_speed=0
+    RX_pretty=0b
+    RX_weight=0
+    RX_end=0
+
+    ## And now let's do some me.. math
+    echo -e "\nRunning Netspeed against interface: $eth"
+    while true; do
+        RX_weight=$(( $(cat $RX | xargs) - $RX_start ))
+        TX_weight=$(( $(cat $TX | xargs) - $TX_start ))
+        TIME_weight=$(( $(date +%s) - $TIME_start ))
+
+        RX_speed=$(( $RX_weight - $RX_end ))
+        TX_speed=$(( $TX_weight - $TX_end ))
+
+        ## Why end? cause I'm negative..
+        RX_end=$RX_weight
+        TX_end=$TX_weight
+
+        ## Get the right values
+        for o in ${To[@]}; do
+            RX_pretty=$(( $RX_weight / ${Ts[$o]} ))
+            (( $RX_pretty )) && RX_pretty+=$o && break
+        done
+        for o in ${To[@]}; do
+            TX_pretty=$(( $TX_weight / ${Ts[$o]} ))
+            (( $TX_pretty )) && TX_pretty+=$o && break
+        done
+        for o in ${To[@]}; do
+            RX_speed_pretty=$(( $RX_speed / ${Ts[$o]} ))
+            (( $RX_speed_pretty )) && RX_speed_pretty+="$o/s" && break
+        done
+        for o in ${To[@]}; do
+            TX_speed_pretty=$(( $TX_speed / ${Ts[$o]} ))
+            (( $TX_speed_pretty )) && TX_speed_pretty+="$o/s" && break
+        done
+
+        echo -ne "Time:${TIME_weight}s RX:$RX_pretty - ${RX_speed_pretty} TX:$TX_pretty - ${TX_speed_pretty} \r"
+
+        sleep 1
+    done
+
+exit 0
+}
+## I've never run that fast! -- cit.
+
+## ALLATEST
+##
+## gets a list of the last 50 files modified within your dir and in its subdirs
+## if you add "loop" it will keep looping every second until you ctrl+c
+# Usage: allatest [loop]
+allatest()
+{
+    if ( [ ! -z $1 ] && [ $1 = loop ] );then
+        while true; do ls -lart `allfiles` | tail -50; sleep 1; done
+    else
+        ls -lart `allfiles` | tail -50 # I can rewrite it... I dislike evals
+    fi
+
+}
+
+
+# SVN Blame a file
 function blame
 {
-        if [[ -z $1 ]]; then
-                echo -e "\n${RED}ERROR:${NC} I need as first parameter the SVN file you want to blame";
-                return 1;
-        fi
-        svn blame $1 | vim -
+  if [[ -z $1 ]]; then
+     echo -e "\n${RED}ERROR:${NC} I need as first parameter the SVN file you want to blame";
+     return 1;
+  fi
+  svn blame $1 | vim -
 }
 
 # Grep colored recursive
@@ -133,16 +254,16 @@ function cgrep
 		echo -e "\n${RED}ERROR:${NC} yeah what are you grepping for? I need a parameter";
 		return 1;
 	fi
-	/bin/grep --color=always -r 	\
---exclude-dir='*/.svn/*' 	\
---exclude-dir='*/.cvs/*' 	\
---exclude-dir='/proc/*'		\
---exclude-dir='/dev/*'		\
---exclude-dir='/run/*'		\
---exclude-dir='/sys/*'		\
---exclude-dir='/dev/*'		\
-"${allofit//\"/\\\"}"		\
-"${p}"
+	/bin/grep --color=always -r \
+    --exclude-dir='.git' 	\
+    --exclude-dir='.svn' 	\
+    --exclude-dir='.cvs' 	\
+    --exclude-dir='/proc'	\
+    --exclude-dir='/dev'	\
+    --exclude-dir='/run'	\
+    --exclude-dir='/sys'	\
+    "${allofit//\"/\\\"}"	\
+    "${p}"
 }
 
 # goto get into the directory of a link
@@ -163,6 +284,29 @@ badlinks()
 	done
 	[ "$1" != '-d' ] && say "if you add -d you can delete those files as well..." badlinks
 }
+
+
+## RPMVERCMP
+##
+## it uses the Perl RPM2 which uses the rpm c lib, so pretty trustworthy, if you give me 6_0_frank > 6.0; gino_5_0_lol > 5.0
+# Returns: 'gt' = 'Greater than'; 'lt' = 'Less than'; 'eq' = 'Same as' (I mean pretty straightforward, no?)
+# Usage: rpmvercmp 6.5.2 6.5.1 (returns 'gt')
+rpmvercmp()
+{
+    [ -z $1 ] && say "ERROR: I need the first parameter as the version you need information on" error && return 1
+    [ -z $2 ] && say "ERROR: I need a second parameter as the version to which you want to comparei '$1'" error && return 1
+    # let's clean the inputs
+    f=$(echo "$1" | sed -r 's|^[^0-9]*?([0-9]+[0-9_\-]*[0-9]+)[^0-9]*$|\1|g' | sed -r 's|[_\-]|.|g')
+    s=$(echo "$2" | sed -r 's|^[^0-9]*?([0-9]+[0-9_\-]*[0-9]+)[^0-9]*$|\1|g' | sed -r 's|[_\-]|.|g')
+    RES=$(/usr/bin/perl -e "use lib '/usr/local/lib/perl5';use RPM2; print RPM2::rpmvercmp('$f', '$s');")
+    (( $? )) && say "ERROR: I had a problem comparing '$f' with '$s', please check them again" error && return 1
+    [ $RES -eq 1 ] && say gt
+    [ $RES -eq 0 ] && say eq
+    [ $RES -eq -1 ] && say lt
+
+    return 0
+}
+
 
 #TODO work on identities better... for work mostly cause you dont give a shit at home
 Iam()
