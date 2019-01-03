@@ -155,32 +155,29 @@ netspeed()
     RX=/sys/class/net/$eth/statistics/rx_bytes
     TX=/sys/class/net/$eth/statistics/tx_bytes
 
-    ## TODO pretty it up...
-    declare -A Ts=(
-        [K]=1024
-        [M]=$((1024 * 1024))
-    )
-    declare -a To=( M K )
-
     ( [ ! -e ${RX} ] || [ ! -e ${TX} ] ) && say "Make sure $eth is correct..." error && exit 1
 
     TIME_start=$(date +%s)
 
     TX_start=$(cat $TX | xargs)
     TX_speed=0
-    TX_pretty=0b
+    TX_pretty=0
     TX_weight=0
     TX_end=0
 
     RX_start=$(cat $RX | xargs)
     TX_speed=0
-    RX_pretty=0b
+    RX_pretty=0
     RX_weight=0
     RX_end=0
 
+    TIME_pretty=0
+
     ## And now let's do some me.. math
     echo -e "\nRunning Netspeed against interface: $eth"
-    while true; do
+    echo -e "| Uptime | | Receive  | | Transmit |"
+
+    while true; do ((r++))
         RX_weight=$(( $(cat $RX | xargs) - $RX_start ))
         TX_weight=$(( $(cat $TX | xargs) - $TX_start ))
         TIME_weight=$(( $(date +%s) - $TIME_start ))
@@ -193,29 +190,81 @@ netspeed()
         TX_end=$TX_weight
 
         ## Get the right values
-        for o in ${To[@]}; do
-            RX_pretty=$(( $RX_weight / ${Ts[$o]} ))
-            (( $RX_pretty )) && RX_pretty+=$o && break
-        done
-        for o in ${To[@]}; do
-            TX_pretty=$(( $TX_weight / ${Ts[$o]} ))
-            (( $TX_pretty )) && TX_pretty+=$o && break
-        done
-        for o in ${To[@]}; do
-            RX_speed_pretty=$(( $RX_speed / ${Ts[$o]} ))
-            (( $RX_speed_pretty )) && RX_speed_pretty+="$o/s" && break
-        done
-        for o in ${To[@]}; do
-            TX_speed_pretty=$(( $TX_speed / ${Ts[$o]} ))
-            (( $TX_speed_pretty )) && TX_speed_pretty+="$o/s" && break
-        done
+        TIME_pretty=$(_netspeed_pretty ${TIME_weight} T 1)
 
-        echo -ne "Time:${TIME_weight}s RX:$RX_pretty - ${RX_speed_pretty} TX:$TX_pretty - ${TX_speed_pretty} \r"
+        RX_pretty=$(_netspeed_pretty ${RX_weight} S 1)
+        TX_pretty=$(_netspeed_pretty ${TX_weight} S 1)
+        RX_speed_pretty=$(_netspeed_pretty ${RX_speed} S 1)
+        TX_speed_pretty=$(_netspeed_pretty ${TX_speed} S 1)
+
+        # This is to reset the line
+        echo -ne "                                                                                        \r"
+        # This is the output
+        echo -ne "${dgreen}Time:${green}${TIME_pretty} ${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s\t ${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s${NC} \r"
 
         sleep 1
     done
+return 0
+}
+# -> _netspeed_pretty IT_weight 'T' 1/0
+# original value, Array of magnitude (GB, MB etc), Recursive magnitude
+_netspeed_pretty()
+{
+  ## 1024 or 1000...
+  kbv=1024 
+  declare -A Ss=(
+    [G]=$((kbv * kbv * kbv))
+    [M]=$((kbv * kbv))
+    [K]=${kbv}
+    [b]=1
+  )
+  declare -a So=( G M K b )
+  
+  ## TIME
+  declare -A Ts=(
+    [d]=$((60 * 60 * 24))
+    [h]=$((60 * 60))
+    [m]=60
+    [s]=1
+  )
+  declare -a To=( d h m s )
 
-exit 0
+  # The remainder during the operations
+  IT_rest=
+  # The final string
+  IT_pretty=''
+  # The initial value, mandatory
+  IT_weight=$1 || return 23
+  # The name of the array in which you have the order of magnitude (GB. MB... etc)
+  L_name=$2 || 'S'
+  # If you want the magnitude to be recursive: 1 (eg. 3G,24M,14K,3b), or if you want to stop at the first occurrence: 0 (eg. 1GB)
+  recursive=$3 || recursive=0
+
+  declare -A Ls
+  declare -a Lo
+  eval "Lo=( \"\${${L_name}o[@]}\" )"
+
+  # yeah I know this is violently convoluted, so what?
+  d=0
+  for (( c=0; c<${#Lo[@]}; c++ )); do
+    Ls[${Lo[$c]}]=$(eval "echo \${${L_name}s[${Lo[$c]}]}")
+    IT_tmp=$(( $IT_weight / ${Ls[${Lo[$c]}]} ))
+    if (( $IT_tmp )); then 
+      (( $d )) && IT_pretty+=','
+      IT_pretty+="${IT_tmp}${Lo[$c]}"
+      ## if we want to make this recursive...
+      ((d++))
+      if (( $recursive )); then
+        IT_rest=$(( $IT_weight % ${Ls[${Lo[$c]}]} ))
+        ## So if we have any rest, we'll rest it
+        (( $IT_rest )) && IT_weight=$IT_rest || break
+      else
+        break
+      fi
+    fi
+  done
+  echo "${IT_pretty}"
+return 0
 }
 ## I've never run that fast! -- cit.
 
