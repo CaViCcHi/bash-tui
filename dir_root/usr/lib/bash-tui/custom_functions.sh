@@ -173,10 +173,11 @@ netspeed()
 
     TIME_pretty=0
 
+    sleep 1
+
     ## And now let's do some me.. math
     echo -e "\nRunning Netspeed against interface: $eth"
-    echo -e "| Uptime | | Receive  | | Transmit |"
-
+    tabs 45 
     while true; do ((r++))
         RX_weight=$(( $(cat $RX | xargs) - $RX_start ))
         TX_weight=$(( $(cat $TX | xargs) - $TX_start ))
@@ -200,11 +201,80 @@ netspeed()
         # This is to reset the line
         echo -ne "                                                                                        \r"
         # This is the output
-        echo -ne "${dgreen}Time:${green}${TIME_pretty} ${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s\t ${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s${NC} \r"
+        
+        echo -ne "${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s\t"
+        echo -ne "${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s${NC}\t"
+        echo -ne "${dgreen}Time:${green}${TIME_pretty}\r"
 
+        ## Measure speed and translate it to dots...
+        (( $RX_speed )) && RX_leng=$(printf %0$(_netspeed_liner ${RX_speed})s|tr \  -)
+        (( $TX_speed )) && TX_leng=$(printf %0$(_netspeed_liner ${TX_speed})s|tr \  -)
         sleep 1
+
+        echo -ne "                                                                                                    \r"
+        echo -e "${dred}##|${red}${RX_leng}\t${orange}##|${yellow}${TX_leng}\t${dgreen}Time:${green}${TIME_pretty}${NC}"
     done
 return 0
+}
+### I decided to scale this in 4 sections of 5, 10, 10, 10 dots/dashes/equals.
+# -> _netspeed_liner SPEED_Bps 
+_netspeed_liner()
+{
+  [ -z "$1" ] && exit 50
+  _speed=$1
+
+  ## 1. 5 slots from 0 to 1mbps = 131.072
+  mbps1=131072
+  mbps1_slot=$(( mbps1 / 10 ))
+  ## 2. 10 slots from 1mbps to 10mbps = 1.310.720
+  mbps10=1310720
+  mbps10_slot=$(( mbps10 / 10 ))
+  mbps10_start=9
+  ## 3. 10 slots from 10mbps to 100mbps = 13.107.200
+  mbps100=13107200
+  mbps100_slot=$(( mbps100 / 10 ))
+  mbps100_start=19
+  ## 4. 10 slots from 100mbps to 1gbps = 134.217.728
+  mbps1000=134217720
+  mbps1000_slot=$(( mbps1000 / 10 ))
+  mbps1000_start=29
+  ## Starting score
+  _score=1
+  ## Now calculate RX
+  while true; do
+    (( ! $_speed )) && _score=0 && break
+
+    ## 1 gbps
+    if [ $_speed -gt $mbps100 ]; then
+      _score=${mbps1000_start}
+      for (( m=10; m>0; m--)); do
+        (( $(( _speed / ( mbps1000_slot * m ) )) )) && (( _score += m )) && break 2
+      done
+      (( _score += 11 ))
+    ## 100 mbps
+    elif [ $_speed -gt $mbps10 ]; then
+      _score=${mbps100_start}
+      for (( m=10; m>0; m--)); do
+        (( $(( _speed / ( mbps100_slot * m ) )) )) && (( _score += m )) && break 2
+      done
+      (( _score += 10 ))
+    ## 10 mbps
+    elif [ $_speed -gt $mbps1 ]; then
+      _score=${mbps10_start}
+      for (( m=10; m>0; m--)); do
+        (( $(( _speed / ( mbps10_slot * m ) )) )) && (( _score += m )) && break 2
+      done
+      (( _score += 10 ))
+    ## 1 mbps
+    elif [ $_speed -le $mbps1 ]; then
+      for (( m=10; m>0; m--)); do
+        #say "[$m]doing: $(( _speed / ( mbps1_slot * m ) )) : $_speed / $(( mbps1_slot * m ))"
+        (( $(( _speed / ( mbps1_slot * m ) )) )) && (( _score += m )) && break 2
+      done
+    fi
+    break
+  done
+  echo "${_score}"
 }
 # -> _netspeed_pretty IT_weight 'T' 1/0
 # original value, Array of magnitude (GB, MB etc), Recursive magnitude
