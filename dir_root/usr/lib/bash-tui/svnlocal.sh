@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 ##
-#
 
 SVN_c=
 SVN_f=
