@@ -81,7 +81,7 @@ _BP_getHelp()
 
   tabs 4
   # Who needs help? whoever's not me and has to look into this
-  cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*getParm|isParm|isNotParm' | sed -E 's/.*getParm|isParm|isNotParm ([a-zA-Z_-]*).* [#]+[#]+[B]+[[P]+[:]+ (.*)$/\1 \2/g' | awk '{ { ORS="" }; if ( length($1) == 1 ) { prefix="-" } else { prefix="--" }; {print "\t"}; {print prefix}; {print $1}; { $1="" }; { print "\n\t\t\t"}; {print $0}; {print "\n"} }'
+  cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*getParm' | sed -E 's/.*getParm ([a-zA-Z_-]*).* [#]+[#]+[B]+[[P]+[:]+ (.*)$/\1 \2/g' | awk '{ { ORS="" }; if ( length($1) == 1 ) { prefix="-" } else { prefix="--" }; {print "\t"}; {print prefix}; {print $1}; { $1="" }; { print "\n\t\t\t"}; {print $0}; {print "\n"} }'
   echo -e "\n"
   ## In case you need help, call for help, but not here...
   #(( $? )) && say "Nobody was able to help :( call for help..." error && exit 119
