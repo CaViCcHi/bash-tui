@@ -26,7 +26,18 @@ unset ta fa wa
 ## If you need help, getHelp
 isParm help && _BP_getHelp && exit 113
 
-## TODO how do we log this? how can you log both the line and the value without it looking unreadable?
+NOW=$(date +"%Y%m%d")
+
+### Logging
+LOG_dir=/var/log/netspeed
+LOG_n_bars=bars
+LOG_n_vals=vals
+LOG_bars=
+LOG_vals=
+
+isParm logAll && LOG_bars=1 && LOG_vals=1
+isParm logBars && LOG_bars=1
+isParm logVals && LOG_vals=1
 
 ##
 ## Tracks speed and traffic for an interface given
@@ -166,6 +177,7 @@ _netspeed_pretty()
       fi
     fi
   done
+  [ -z "${IT_pretty}" ] && IT_pretty=0
   echo "${IT_pretty}"
 return 0
 }
@@ -186,11 +198,21 @@ return 0
 
 sleep 1
 
+# Pretty Max Speed up
+MS_pretty=$(_netspeed_pretty ${MS_bytes})
+
 ## And now let's do some me.. math
-echo -e "\n${yellow}Running Netspeed against interface:${NC} ${eth}"
+echo -e "\n${yellow}Running Netspeed against interface:${NC} ${eth}" 
 echo -ne "${yellow}"
 isParm maxSpeed && echo -ne "Given " || echo -ne "Interface "
-echo -ne "Max Speed:${NC} ${MS} Mbit/s > $(_netspeed_pretty ${MS_bytes})/s\n"
+echo -ne "Max Speed:${NC} ${MS} Mbit/s > ${MS_pretty}/s\n"
+
+# Log start
+[ ! -d $LOG_dir ] && mkdir -p $LOG_dir
+LOG_f_bars=${LOG_dir}/${NOW}_${LOG_n_bars}.log
+LOG_f_vals=${LOG_dir}/${NOW}_${LOG_n_vals}.log
+[ -n "$LOG_bars" ] && echo -e "IE: $eth - Speed: ${MS}Mbit/s > ${MS_pretty}/s" >> $LOG_f_bars
+[ -n "$LOG_vals" ] && echo -e "IE: $eth - Speed: ${MS}Mbit/s > ${MS_pretty}/s" >> $LOG_f_vals
 
 while true; do ((r++))
   ## Get tabs & window size, minus the differential
@@ -204,6 +226,7 @@ while true; do ((r++))
     echo -e "${blue}$(printf %0${WINDOW_width}s|tr \  '-')${NC}"
   fi
 
+  ## Gather and calculate
   RX_weight=$(( $(cat $RX | xargs) - $RX_start ))
   TX_weight=$(( $(cat $TX | xargs) - $TX_start ))
   TIME_weight=$(( $(date +%s) - $TIME_start ))
@@ -224,12 +247,22 @@ while true; do ((r++))
   RX_speed_pretty=$(_netspeed_pretty ${RX_speed} S 1)
   TX_speed_pretty=$(_netspeed_pretty ${TX_speed} S 1)
 
+  ## Logging it
+  if [ -n "$LOG_bars" ]; then
+    LOG_f_bars=${LOG_dir}/$(date +"%Y%m%d")_${LOG_n_bars}.log
+    echo -e "${dred}##|${red}${RX_leng}\t${orange}##|${yellow}${TX_leng}\t${dgreen}Time:${green}${TIME_pretty}${NC}" >> $LOG_f_bars
+  fi
+  if [ -n "$LOG_vals" ]; then
+    LOG_f_vals=${LOG_dir}/$(date +"%Y%m%d")_${LOG_n_vals}.log
+    echo -e "RX:$RX_pretty - ${RX_speed_pretty}/s\tTX:$TX_pretty - ${TX_speed_pretty}/s\tTime:${TIME_pretty}" >> $LOG_f_vals
+  fi
+
   # This is to reset the line
   echo -ne "$(printf %0${WINDOW_now}s|tr \  ' ')\r"
   # This is the output
   echo -ne "${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s\t"
-  echo -ne "${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s${NC}\t"
-  echo -ne "${dgreen}Time:${green}${TIME_pretty_bottom}\r"
+  echo -ne "${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s\t"
+  echo -ne "${dgreen}Time:${green}${TIME_pretty_bottom}${NC}\r"
 
   ## Measure speed and translate it to dots...
   (( $RX_speed )) && RX_leng=$(printf %0$(_netspeed_liner ${RX_speed})s|tr \  -)
