@@ -91,7 +91,7 @@ _BP_getHelp()
 # Y U NO PARMS??
 isNoParm()
 {
-  [ "${#_BP[@]}" < 1 ] && return 0 || return 1
+  [ "${#_BP[@]}" -lt 1 ] && return 0 || return 1
 }
 
 ## TODO: for multiple parameters, create an assignment sheet on the script file. now I even wonder why you should have a choice of paramters long and short
