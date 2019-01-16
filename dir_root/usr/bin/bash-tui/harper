@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+##
+
+## BASE BRAIN - Get where you're from and who you are.
+MYPID=$$
+ORIGINAL_DIR="$(pwd)" # This is not a hot air balloon ride..
+fa="$0" # First Assumption
+ta= # Temporary Assumption
+wa= # Weighed Assumption
+while true; do
+    [ "${fa:0:1}" = "/" ] && wa=$0 && break
+    [ "${fa:0:2}" = "./" ] && ta="${ORIGINAL_DIR}/${fa:2}" && [ -e "$ta" ] && wa="$ta" && break
+    ta="${ORIGINAL_DIR}/${fa}" && [ -e "$ta" ] && wa="$ta" && break
+done
+SW="$wa"
+SWDIR="$(dirname "$wa")"
+SWBIN="$(basename "$wa")"
+unset ta fa wa
+( [ ! -e "$SWDIR/$SWBIN" ] || [ -z "$SW" ] ) && echo "I could not find my way around :( possible bug in the TOP script" && exit 1
+
+### Libraries
+
+. /etc/profile.d/20_rosterlib.sh
+. /usr/lib/bash-tui/bashparms.sh
+
+## If you need help, getHelp
+##BPA: Usage: harper 192.168.0.30 or 192.168.0.0/24
+( [ -z "$1" ] || isParm help ) && _BP_getHelp && exit 113
+
+TOSCAN=$1
+
+RES=
+
+##BPv f > fast
+##BPv m > mac
+
+mac=$(getParm mac) || mac=  ##BP: The mac address you want to look for, full or portion
+fast=$(getParm fast) || fast=  ##BP: If you want the process to go much faster
+
+if isParm fast; then
+  timeout=1
+  retry=1
+else
+  timeout=2
+  retry=2
+fi
+
+
+declare -a IPs
+
+## See if you need to run it against a table of IPs or just one
+if [[ ${TOSCAN} =~ / ]]; then
+  say "CIDR Notation: ${TOSCAN}" gold
+  IPs=( $(nmap -sL ${TOSCAN} | grep "Nmap scan report" | awk '{print $NF}') ) 
+  (( $? )) && say "ERROR: Could not get CIDR list" error && exit 1
+else
+  say "Direct IP: ${TOSCAN}" yellow
+  IPs=( ${TOSCAN} )
+fi
+
+for IP in ${IPs[@]}; do 
+  ## Don't harp those and say something if it was a one-shot
+  ( [[ $IP =~ \.0$|\.255$ ]] ) && ( [ ${#IPs[@]} -eq 1 ] && say "Can't Harp ${IP}" dcyan || true ) && continue
+  RES=$(arping -I eth0 -w ${timeout} -c ${retry} -f ${IP} | grep 'Unicast reply from' | sed -E 's|^.*\[([0-9A-F:]*)\].*$|\1|g' 2>/dev/null)
+  (( $? )) && say "WARNING: Could not harp ${IP}" && continue
+  isParm mac && [[ ${RES} =~ $mac ]] && say "${IP}: ${RES} !!! MATCH !!!" yellow
+  [ -n "$RES" ] && say "${IP}: ${RES}" cyan || say $IP dgrey
+done
+
