@@ -60,6 +60,21 @@ if [ -n "$*" ];then
 	set -- && set -- ${_PP[*]}
 fi
 
+#### Parametrizer - if you have a configuration file instead of parameters
+## just pass me a file name and I will look for a pair of KEY[space(s)]Value
+if ( [ ! -z "${_BP[parametrizer]+_}" ] && [ -e "${_BP[parametrizer]}" ] );then
+  ## Now read through it
+  IFS=$'\n'
+  for LINE in $(cat "${_BP[parametrizer]}" | grep -v '^#'); do
+    ##TODO But Willy't Wonka if you have spaces in the parameter? If you quote it I think so
+    IFS=$' '
+    read k v <<< $LINE
+    _BP+=( [$k]=$v )
+  done
+  unset IFS
+fi
+#### /
+
 #### DEBUG #
 if [ -n "$_P_DEBUG_" ]; then
 	echo "Dashed Parameters: " 
@@ -72,6 +87,11 @@ if [ -n "$_P_DEBUG_" ]; then
 	done
 fi
 
+####################################
+#### METHODS
+
+### INTERNALS
+
 ## I don't like getHelp --cit.
 _BP_getHelp()
 {
@@ -83,10 +103,13 @@ _BP_getHelp()
   # Who needs help? whoever's not me and has to look into this
   cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*getParm' | sed -E 's/.*getParm ([a-zA-Z_-]*).* [#]+[#]+[B]+[[P]+[:]+ (.*)$/\1 \2/g' | awk '{ { ORS="" }; if ( length($1) == 1 ) { prefix="-" } else { prefix="--" }; {print "\t"}; {print prefix}; {print $1}; { $1="" }; { print "\n\t\t\t"}; {print $0}; {print "\n"} }'
   echo -e "\n"
+  ## TODO isParm isNotParm
   ## In case you need help, call for help, but not here...
   #(( $? )) && say "Nobody was able to help :( call for help..." error && exit 119
   return 0
 }
+
+### EXTERNALS
 
 # Y U NO PARMS??
 isNoParm()
