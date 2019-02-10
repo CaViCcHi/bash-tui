@@ -117,6 +117,15 @@ isNoParm()
   [ "${#_BP[@]}" -lt 1 ] && return 0 || return 1
 }
 
+## In case you need to set parameters inside your code 
+setParm()
+{
+  [ -z $1 ] && return 2 || k=$1
+  [ -z $2 ] && v=1 || v=$2
+
+  _BP+=( [$k]=$v )
+}
+
 ## TODO: for multiple parameters, create an assignment sheet on the script file. now I even wonder why you should have a choice of paramters long and short
 ## like:
 ##BP: f > force
