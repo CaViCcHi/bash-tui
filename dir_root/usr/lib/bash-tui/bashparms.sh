@@ -108,7 +108,7 @@ _BP_getHelp()
   IFS=$'\n'
   declare -A h
   # Who needs help? whoever's not me and has to look into this
-  for VAR in $(cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*(getParm|isParm|isNotParm)' | sed -E 's/.*(getParm|isParm|isNotParm) ([a-zA-Z]+[a-zA-Z0-9_-]*[a-zA-Z0-9]+).*(##BP: |$)(.*)/\2 \4/g'); do
+  for VAR in $(cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*(getParm|isParm|isNotParm)' | sed -E 's/.*(getParm|isParm|isNotParm) ([a-zA-Z]+[a-zA-Z0-9_-]*[a-zA-Z0-9]*).*(##BP: |$)(.*)/\2 \4/g'); do
     unset IFS
     read k v <<< $(echo $VAR)
     if [ -z "${h[$k]+_}" ];then
