@@ -59,6 +59,8 @@ RX_end=0
 
 TIME_pretty=0
 
+pipe="$(getParm pipe)" || pipe='-' ##BP: Magnitude character
+
 ### TABs
 ## 
 ## Window Size
@@ -79,6 +81,28 @@ COLS_time=24
 
 #### METHODS
 ##
+
+## Now I add a little graph on top, why? why not...
+_netspeed_graph()
+{
+  [ -z "$1" ] && exit 48 || B=$1
+  [ -z "$2" ] && exit 48 || A=$2
+
+  graph=' '
+
+  ## let's keep it simple for now
+  if [ $B -gt $A ]; then
+    graph+='/'
+    graph+="$(printf %0$(( B - A - 1 ))s|tr \  '"')"
+  elif [ $B -lt $A ]; then
+    graph+='\\'
+  else
+    graph+='|'
+  fi
+  # now just blurt it out
+  echo "$graph"
+return 0
+}
 
 ## I decided to scale this in 4 sections of 5, 10, 10, 10 dots/dashes/equals.
 # -> _netspeed_liner SPEED_Bps 
@@ -106,6 +130,7 @@ _netspeed_liner()
     break
   done
   echo "${_score}"
+return 0
 }
 # -> _netspeed_pretty IT_weight 'T' 1/0
 # original value, Array of magnitude (GB, MB etc), Recursive magnitude
@@ -204,6 +229,13 @@ while true; do ((r++))
     echo -e "${blue}$(printf %0${WINDOW_width}s|tr \  '-')${NC}"
   fi
 
+  ## Graph adds a graphical representation on top of the lines
+  if isParm graph;then  ##BP: Displays a vertical representation of your usage.
+    ## keep for graph comparison
+    [ ! -z "$RX_leng" ] && old_RX_leng=${#RX_leng}
+    [ ! -z "$TX_leng" ] && old_TX_leng=${#TX_leng}
+  fi
+
   RX_weight=$(( $(cat $RX | xargs) - $RX_start ))
   TX_weight=$(( $(cat $TX | xargs) - $TX_start ))
   TIME_weight=$(( $(date +%s) - $TIME_start ))
@@ -232,12 +264,23 @@ while true; do ((r++))
   echo -ne "${dgreen}Time:${green}${TIME_pretty_bottom}\r"
 
   ## Measure speed and translate it to dots...
-  (( $RX_speed )) && RX_leng=$(printf %0$(_netspeed_liner ${RX_speed})s|tr \  -)
-  (( $TX_speed )) && TX_leng=$(printf %0$(_netspeed_liner ${TX_speed})s|tr \  -)
+  (( $RX_speed )) && RX_leng=$(printf %0$(_netspeed_liner ${RX_speed})s|tr \  "$pipe")
+  (( $TX_speed )) && TX_leng=$(printf %0$(_netspeed_liner ${TX_speed})s|tr \  "$pipe")
+
+  RX_leng_output=$RX_leng
+  TX_leng_output=$TX_leng
+  ## Graph adds a graphical representation on top of the lines
+  if isParm graph; then
+    RX_leng_output+="${dred}$(_netspeed_graph ${old_RX_leng} ${#RX_leng})${NC}"
+    TX_leng_output+="${orange}$(_netspeed_graph ${old_TX_leng} ${#TX_leng})${NC}"
+    #RX_leng_output="$(_netspeed_graph ${old_RX_leng} ${#RX_leng})\')"
+    #TX_leng_output="$(_netspeed_graph ${old_TX_leng} ${#TX_leng})"
+  fi
+  # Wait for next check
   sleep 1
  
   echo -ne "$(printf %0${WINDOW_now}s|tr \  ' ')\r"
-  echo -e "${dred}##|${red}${RX_leng}\t${orange}##|${yellow}${TX_leng}\t${dgreen}Time:${green}${TIME_pretty}${NC}"
+  echo -e "${dred}##|${red}${RX_leng_output}\t${orange}##|${yellow}${TX_leng_output}\t${dgreen}Time:${green}${TIME_pretty}${NC}"
 
 done
 exit 0
