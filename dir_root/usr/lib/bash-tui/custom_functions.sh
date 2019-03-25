@@ -5,7 +5,7 @@ REX_repos='\.svn|\.git';
 function allfiles
 {
 ARG=$1
-    find $(pwd) -type f | grep -vE $REX_repos | grep "$1" --color
+    find $(pwd) \( -type l -o -type f \) | grep -vE $REX_repos | grep "$1" --color
 }
 function alldirs
 {
