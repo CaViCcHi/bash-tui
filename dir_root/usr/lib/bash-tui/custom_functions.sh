@@ -5,7 +5,7 @@ REX_repos='\.svn|\.git';
 function allfiles
 {
 ARG=$1
-    find $(pwd) -type f | grep -vE $REX_repos | grep "$1" --color
+    find $(pwd) \( -type l -o -type f \) | grep -vE $REX_repos | grep "$1" --color
 }
 function alldirs
 {
@@ -21,7 +21,15 @@ NOW=$(pwd)
         locate -d ${LOCATEDBDIR}locate_local.db $1
 }
 
-
+function dcd
+{
+  [ -z "$1" ] && cd - && return 1
+  d="$1" || d=$(pwd)
+  [ -d "$d" ] && cd "$d" && return 0
+  [ -e "$d" ] && cd "$(dirname "$d")" && return 0
+  say "Not sure what '$d' is..." error
+return 1
+}
 
 function wakeup
 {
