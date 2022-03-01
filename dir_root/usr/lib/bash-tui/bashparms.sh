@@ -8,18 +8,18 @@
 # As of now you can nest this twice. I call bash lib with the possibility of parameters. and the main one. you can probably
 # play with caller and get the depth from a methodino
 
-[ -n "$_P_DEBUG_" ] && say "[    ]all parms '$*' && '${!_BP[*]}' ++ '$(caller 0)' \$?='$?'" $BLUE #- DEBUG
+[ -n "$_P_DEBUG_" ] && echo "[    ]all parms '$*' && '${!_BP[*]}' ++ '$(caller 0)' \$?='$?'" #- DEBUG
 
 # At this point make sure you're cleaning up between levels
 _P_ocm="$_P_cm"
 _P_cm="$(caller 0 | awk '{print $2}')"
-[ -n "$_P_DEBUG_" ] && say "and then '$(caller)' [1]> '$(caller 1)' [2]> '$(caller 2)'" $blue
+[ -n "$_P_DEBUG_" ] && echo "and then '$(caller)' [1]> '$(caller 1)' [2]> '$(caller 2)'" 
 [ -n "$_P_DEBUG_" ] && echo "CM:$_P_cm"
 ## I forgot what I had to put there... fuck - for now this is ok cause it's as if the line didn't exist
 ( [  ] && [ "$_P_cm" = 'main' ] ) && declare -A _BP=()
 [ -z "${!_BP[*]}" ] && declare -A _BP=()
 
-[ -n "$_P_DEBUG_" ] && say "[ -->]all parms '$*' && '${!_BP[*]}' ++ '$(caller 0)' \$?='$?'" $cyan #- DEBUG
+[ -n "$_P_DEBUG_" ] && echo "[ -->]all parms '$*' && '${!_BP[*]}' ++ '$(caller 0)' \$?='$?'" #- DEBUG
 
 if [ -n "$*" ];then
 	declare -a tp=( "$@" )
@@ -108,7 +108,7 @@ _BP_getHelp()
   IFS=$'\n'
   declare -A h
   # Who needs help? whoever's not me and has to look into this
-  for VAR in $(cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*(getParm|isParm|isNotParm)' | sed -E 's/.*(getParm|isParm|isNotParm) ([a-zA-Z]+[a-zA-Z0-9_-]*[a-zA-Z0-9]*).*(##BP: |$)(.*)/\2 \4/g'); do
+  for VAR in $(cat "$(caller 0 | awk '{print $3}')" | grep -E '^[^#].*(getParm|isParm|isNotParm)' | sed -E 's/.*(getParm|isParm|isNotParm) ([a-zA-Z0-9]+[a-zA-Z0-9_-]*[a-zA-Z0-9]*).*(##BP: |$)(.*)/\2 \4/g'); do
     unset IFS
     read k v <<< $(echo $VAR)
     if [ -z "${h[$k]+_}" ];then
@@ -127,7 +127,7 @@ _BP_getHelp()
   done
   echo -e "\n"
   ## In case you need help, call for help, but not here...
-  #(( $? )) && say "Nobody was able to help :( call for help..." error && exit 119
+  #(( $? )) && echo "Nobody was able to help :( call for help..." && exit 119
   return 0
 }
 
