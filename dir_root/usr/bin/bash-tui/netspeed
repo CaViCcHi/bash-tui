@@ -76,6 +76,10 @@ TAB_diff=4
 ## The tab right now
 TAB_now=0
 
+TAB_safe=
+
+TAB_str=
+
 ## How many columns does TIME take? usually 24 | Time:2019-01-09 22:53:51
 COLS_time=24
 
@@ -111,11 +115,11 @@ _netspeed_liner()
   [ -z "$1" ] && exit 50
   _speed=$1
 
-  ## This is the size of the tab minus a differential, just to avoid stuff overlapping
-  TAB_safe=$(( TAB_now - TAB_diff ))
+  ### This is the size of the tab minus a differential, just to avoid stuff overlapping
+  #TAB_safe=$(( TAB_now - TAB_diff ))
   
-  # The single unit of bandwidth. We have a max of TAB_safe 
-  MS_slot=$(( MS_bytes / TAB_safe ))
+  ## The single unit of bandwidth. We have a max of TAB_safe 
+  #MS_slot=$(( MS_bytes / TAB_safe ))
 
   ## Starting score
   _score=1
@@ -256,31 +260,57 @@ while true; do ((r++))
   RX_speed_pretty=$(_netspeed_pretty ${RX_speed} S 1)
   TX_speed_pretty=$(_netspeed_pretty ${TX_speed} S 1)
 
+  ## This is the size of the tab minus a differential, just to avoid stuff overlapping
+  TAB_safe=$(( TAB_now - TAB_diff ))
+  
+  # The single unit of bandwidth. We have a max of TAB_safe 
+  MS_slot=$(( MS_bytes / TAB_safe ))
+
+  ## Get score from _liner
+  RX_score=$(_netspeed_liner ${RX_speed})
+  TX_score=$(_netspeed_liner ${TX_speed})
+  
+  RX_tab="\t"
+  RX_tab_full=
+  TX_tab="\t"
+  TX_tab_full=
+  [ "$RX_score" -ge "$TAB_safe" ] && RX_tab_full=1 && RX_tab=''
+  [ "$TX_score" -ge "$TAB_safe" ] && TX_tab_full=1 && TX_tab=''
+
   # This is to reset the line
   echo -ne "$(printf %0${WINDOW_now}s|tr \  ' ')\r"
   # This is the output
-  echo -ne "${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s\t"
+  echo -ne "${dred}RX:${red}$RX_pretty - ${RX_speed_pretty}/s${NC}\t"
   echo -ne "${orange}TX:${yellow}$TX_pretty - ${TX_speed_pretty}/s${NC}\t"
   echo -ne "${dgreen}Time:${green}${TIME_pretty_bottom}\r"
 
   ## Measure speed and translate it to dots...
-  (( $RX_speed )) && RX_leng=$(printf %0$(_netspeed_liner ${RX_speed})s|tr \  "$pipe")
-  (( $TX_speed )) && TX_leng=$(printf %0$(_netspeed_liner ${TX_speed})s|tr \  "$pipe")
+  (( $RX_speed )) && RX_leng=$(printf %0${RX_score}s|tr \  "$pipe")
+  (( $TX_speed )) && TX_leng=$(printf %0${TX_score}s|tr \  "$pipe")
 
   RX_leng_output=$RX_leng
   TX_leng_output=$TX_leng
+  RX_graph=''
+  TX_graph=''
   ## Graph adds a graphical representation on top of the lines
   if isParm graph; then
-    RX_leng_output+="${dred}$(_netspeed_graph ${old_RX_leng} ${#RX_leng})${NC}"
-    TX_leng_output+="${orange}$(_netspeed_graph ${old_TX_leng} ${#TX_leng})${NC}"
-    #RX_leng_output="$(_netspeed_graph ${old_RX_leng} ${#RX_leng})\')"
-    #TX_leng_output="$(_netspeed_graph ${old_TX_leng} ${#TX_leng})"
+    if [ -z "${RX_tab_full}" ]; then 
+      RX_graph=$(_netspeed_graph ${old_RX_leng} ${#RX_leng})
+      RX_leng_output+="${RX_graph}"
+    fi
+    if [ -z "${TX_tab_full}" ]; then
+      TX_graph=$(_netspeed_graph ${old_TX_leng} ${#TX_leng})
+      TX_leng_output+="${TX_graph}"
+    fi
   fi
   # Wait for next check
   sleep 1
  
+  [ "$(wc -c <<< ${RX_leng_output})" -ge "$TAB_safe" ] && RX_tab='' && RX_leng_output=${RX_leng_output:0:$TAB_safe}
+  [ "$(wc -c <<< ${TX_leng_output})" -ge "$TAB_safe" ] && TX_tab='' && TX_leng_output=${TX_leng_output:0:$TAB_safe}
+
   echo -ne "$(printf %0${WINDOW_now}s|tr \  ' ')\r"
-  echo -e "${dred}##|${red}${RX_leng_output}\t${orange}##|${yellow}${TX_leng_output}\t${dgreen}Time:${green}${TIME_pretty}${NC}"
+  echo -e "${dred}##|${red}${RX_leng_output}${RX_tab}${orange}##|${yellow}${TX_leng_output}${TX_tab}${dgreen}Time:${green}${TIME_pretty}${NC}"
 
 done
 exit 0
