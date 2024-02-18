@@ -29,6 +29,7 @@ jobs:
     - name: Build RPM
       run: |
         TAR_VERSION="${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}"
+        HOME="${{ github.workspace }}"
         rpmbuild -ba bash-tui.spec \
           --define "_sourcedir $HOME/rpmbuild/SOURCES" \
           --define "tar_version $TAR_VERSION" \
