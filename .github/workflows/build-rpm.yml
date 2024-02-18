@@ -14,10 +14,10 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Set up RPM Build Environment
-      run: |
-        apt-get update
-        apt-get install -y rpm
+#    - name: Set up RPM Build Environment
+#      run: |
+#        apt-get update
+#        apt-get install -y rpm
 
     - name: Prepare Source and Extract Version
       run: |
