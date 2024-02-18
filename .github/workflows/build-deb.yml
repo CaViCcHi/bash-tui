@@ -22,6 +22,11 @@ jobs:
     - name: Build DEB Package
       run: |
         dpkg-buildpackage -us -uc -b
+        
+    - name: Where am I?
+      run: |
+        pwd
+        ls -lR
 
     - name: Upload DEB Package
       uses: actions/upload-artifact@v4
