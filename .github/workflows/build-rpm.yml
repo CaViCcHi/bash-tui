@@ -45,7 +45,7 @@ jobs:
       with:
         name: bash-tui
         path: |
-          bash-tui-*.src.rpm
-          x86_64/bash-tui-*.rpm
+          $HOME/bash-tui-*.src.rpm
+          $HOME/x86_64/bash-tui-*.rpm
 
         if-no-files-found: warn
