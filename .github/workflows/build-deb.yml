@@ -2,8 +2,9 @@ name: Build DEB Package
 
 on:
   push:
-    branches:
-      - 'release/*'
+    tags:
+      - 'release-rpm-*'
+      - 'release-[0-9]+*'
 
 jobs:
   build-deb:

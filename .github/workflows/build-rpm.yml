@@ -3,8 +3,9 @@ name: Build RPM Package
 
 on:
   push:
-    branches:
-      - 'release/*'
+    tags:
+      - 'release-rpm-*' 
+      - 'release-[0-9]+'
 
 jobs:
   build:
@@ -16,7 +17,9 @@ jobs:
 
     - name: Set RPM Version and Release
       run: |
-        echo "RPM_VERSION=$(echo ${GITHUB_REF#refs/heads/release/})" >> $GITHUB_ENV
+        TAG_REF=${GITHUB_REF#refs/tags/}
+        VERSION=$(echo $TAG_REF | sed -E 's/^[a-zA-Z\-]+-//g')
+        echo "RPM_VERSION=$VERSION" >> $GITHUB_ENV
         echo "RPM_RELEASE=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
 
     - name: Prepare Source
