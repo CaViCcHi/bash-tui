@@ -26,10 +26,12 @@ jobs:
         mkdir -p $HOME/rpmbuild/SOURCES
         tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
 
+    - name: Just test home
+      run: echo $HOME
+
     - name: Build RPM
       run: |
         TAR_VERSION="${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}"
-        TOME="$HOME"
         rpmbuild -ba bash-tui.spec \
           --define "_sourcedir $HOME/rpmbuild/SOURCES" \
           --define "tar_version $TAR_VERSION" \
