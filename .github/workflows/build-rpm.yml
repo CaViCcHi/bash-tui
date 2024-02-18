@@ -1,0 +1,47 @@
+# Build RPM
+name: Build RPM Package
+
+on:
+  push:
+    branches:
+      - 'release/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up RPM Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y rpm-build
+
+    - name: Prepare Source and Extract Version
+      run: |
+        RPM_VERSION=$(echo "${{ github.ref }}" | sed 's|refs/heads/release/||')
+        RPM_RELEASE=$(git rev-parse --short=8 HEAD)
+        TAR_VERSION="${RPM_VERSION}-${RPM_RELEASE}"
+        TAR_NAME="bash-tui-${TAR_VERSION}.tar.gz"
+        mkdir -p $HOME/rpmbuild/SOURCES
+        tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
+
+    - name: Build RPM
+      run: |
+        rpmbuild -ba bash-tui.spec \
+          --define "_sourcedir $HOME/rpmbuild/SOURCES" \
+          --define "tar_version $TAR_VERSION" \
+          --define "rpm_version $RPM_VERSION" \
+          --define "rpm_release $RPM_RELEASE" \
+          --define "_srcrpmdir $HOME" \
+          --define "_rpmdir $HOME" 
+
+    - name: Upload RPM
+      uses: actions/upload-artifact@v2
+      with:
+        name: bash-tui
+        path: |
+          ${HOME}/*.rpm
+
