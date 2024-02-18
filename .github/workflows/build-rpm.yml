@@ -9,22 +9,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      RPM_VERSION: ${{ steps.set_vars.outputs.rpm_version }}
+      RPM_RELEASE: ${{ steps.set_vars.outputs.rpm_release }}
+      TAR_VERSION: ${{ steps.set_vars.outputs.tar_version }}
 
     steps:
     - name: Check out code
       uses: actions/checkout@v2
 
-#    - name: Set up RPM Build Environment
-#      run: |
-#        apt-get update
-#        apt-get install -y rpm
-
-    - name: Prepare Source and Extract Version
+    - name: Set Variables
+      id: set_vars
       run: |
-        RPM_VERSION=$(echo "${{ github.ref }}" | sed 's|refs/heads/release/||')
-        RPM_RELEASE=$(git rev-parse --short=8 HEAD)
-        TAR_VERSION="${RPM_VERSION}-${RPM_RELEASE}"
-        TAR_NAME="bash-tui-${TAR_VERSION}.tar.gz"
+        echo "::set-output name=rpm_version::$(echo "${{ github.ref }}" | sed 's|refs/heads/release/||')"
+        echo "::set-output name=rpm_release::$(git rev-parse --short=8 HEAD)"
+        echo "::set-output name=tar_version::${{ steps.set_vars.outputs.rpm_version }}-${{ steps.set_vars.outputs.rpm_release }}"
+
+    - name: Prepare Source
+      run: |
+        TAR_NAME="bash-tui-${{ env.TAR_VERSION }}.tar.gz"
         mkdir -p $HOME/rpmbuild/SOURCES
         tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
 
