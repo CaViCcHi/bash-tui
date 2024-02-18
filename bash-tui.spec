@@ -4,7 +4,6 @@ Release:        %{?rpm_release}
 Summary:        Bash TUI project
 
 License:        GPL
-URL:            https://github.com/yourusername/bash-tui
 Source0:        bash-tui-%{tar_version}.tar.gz
 
 Requires:       bash
