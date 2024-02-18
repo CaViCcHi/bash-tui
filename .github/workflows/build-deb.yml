@@ -1,0 +1,32 @@
+name: Build DEB Package
+
+on:
+  push:
+    tags:
+      - 'release-rpm-*'
+      - 'release-[0-9]+*'
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Install Packaging Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dpkg-dev fakeroot
+
+    - name: Build DEB Package
+      run: |
+        dpkg-buildpackage -us -uc -b
+
+    - name: Upload DEB Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: bash-tui-deb
+        path: |
+          ../*.deb
+

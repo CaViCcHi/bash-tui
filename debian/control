@@ -1,0 +1,14 @@
+Source: bash-tui
+Section: utils
+Priority: optional
+Maintainer: Matteo Bignotti <gugoll@gmail.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: https://github.com/CaViCcHi/bash-tui/
+
+Package: bash-tui
+Architecture: all
+Depends: ${misc:Depends}, bash
+Description: Bash TUI project for improved shell interface
+ Long description of the project
+
