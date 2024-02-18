@@ -17,7 +17,7 @@ jobs:
     - name: Install Packaging Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y dpkg-dev fakeroot
+        sudo apt-get install -y dpkg-dev fakeroot debhelper
 
     - name: Build DEB Package
       run: |
