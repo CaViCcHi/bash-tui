@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set RPM Version and Release
       run: |
@@ -38,9 +38,11 @@ jobs:
           --define "_rpmdir $HOME"
 
     - name: Upload RPM Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: bash-tui
         path: |
-          ${{ github.workspace }}/bash-tui-*.src.rpm
-          ${{ github.workspace }}/x86_64/bash-tui-*.rpm
+          bash-tui-*.src.rpm
+          x86_64/bash-tui-*.rpm
+
+        if-no-files-found: warn
