@@ -14,23 +14,24 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Set Variables
+    - name: Set RPM Version and Release
       run: |
         echo "RPM_VERSION=$(echo ${GITHUB_REF#refs/heads/release/})" >> $GITHUB_ENV
         echo "RPM_RELEASE=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
-        echo "TAR_VERSION=${RPM_VERSION}-${RPM_RELEASE}" >> $GITHUB_ENV
 
     - name: Prepare Source
       run: |
-        TAR_NAME="bash-tui-${{ env.TAR_VERSION }}.tar.gz"
+        TAR_VERSION="${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}"
+        TAR_NAME="bash-tui-${TAR_VERSION}.tar.gz"
         mkdir -p $HOME/rpmbuild/SOURCES
         tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
 
     - name: Build RPM
       run: |
+        TAR_VERSION="${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}"
         rpmbuild -ba bash-tui.spec \
           --define "_sourcedir $HOME/rpmbuild/SOURCES" \
-          --define "tar_version ${{ env.TAR_VERSION }}" \
+          --define "tar_version $TAR_VERSION" \
           --define "rpm_version ${{ env.RPM_VERSION }}" \
           --define "rpm_release ${{ env.RPM_RELEASE }}" \
           --define "_srcrpmdir $HOME" \
@@ -40,6 +41,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: bash-tui
-        path: |
-          $HOME/rpmbuild/RPMS/**/*.rpm
+        path: ${{ steps.rpm.outputs.rpm_dir_path }}
 
