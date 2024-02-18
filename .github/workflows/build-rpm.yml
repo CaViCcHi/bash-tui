@@ -18,8 +18,8 @@ jobs:
 
     - name: Set up RPM Build Environment
       run: |
-        apt-get update
-        apt-get install -y rpm-build
+        yum update -y
+        yum install -y rpm-build
 
     - name: Prepare Source and Extract Version
       run: |
