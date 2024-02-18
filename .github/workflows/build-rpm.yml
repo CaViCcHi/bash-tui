@@ -37,9 +37,10 @@ jobs:
           --define "_srcrpmdir $HOME" \
           --define "_rpmdir $HOME"
 
-    - name: Upload RPM
+    - name: Upload RPM Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: bash-tui
-        path: ${{ steps.rpm.outputs.rpm_dir_path }}
-
+        path: |
+          $HOME/*.rpm
+          $HOME/x86_64/*.rpm
