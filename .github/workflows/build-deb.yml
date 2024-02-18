@@ -3,7 +3,7 @@ name: Build DEB Package
 on:
   push:
     tags:
-      - 'release-rpm-*'
+      - 'release-deb-*'
       - 'release-[0-9]+*'
 
 jobs:
