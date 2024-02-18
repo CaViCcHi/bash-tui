@@ -23,15 +23,9 @@ jobs:
       run: |
         dpkg-buildpackage -us -uc -b
         
-    - name: Where am I?
-      run: |
-        pwd
-        ls -lR
-
     - name: Upload DEB Package
       uses: actions/upload-artifact@v4
       with:
-        name: bash-tui-deb
-        path: |
-          ../*.deb
+        name: bash-tui
+        path: /home/runner/work/bash-tui/bash-tui*.deb
 
