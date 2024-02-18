@@ -9,25 +9,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      RPM_VERSION: ${{ steps.set_vars.outputs.rpm_version }}
-      RPM_RELEASE: ${{ steps.set_vars.outputs.rpm_release }}
-      TAR_VERSION: ${{ steps.set_vars.outputs.tar_version }}
 
     steps:
     - name: Check out code
       uses: actions/checkout@v2
 
     - name: Set Variables
-      id: set_vars
+      id: variables # This ID is used to reference outputs from this step
       run: |
-        echo "::set-output name=rpm_version::$(echo "${{ github.ref }}" | sed 's|refs/heads/release/||')"
-        echo "::set-output name=rpm_release::$(git rev-parse --short=8 HEAD)"
-        echo "::set-output name=tar_version::${{ steps.set_vars.outputs.rpm_version }}-${{ steps.set_vars.outputs.rpm_release }}"
+        echo "RPM_VERSION=$(echo ${GITHUB_REF#refs/heads/release/})" >> $GITHUB_ENV
+        echo "RPM_RELEASE=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
 
     - name: Prepare Source
       run: |
-        TAR_NAME="bash-tui-${{ env.TAR_VERSION }}.tar.gz"
+        TAR_NAME="bash-tui-${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}.tar.gz"
         mkdir -p $HOME/rpmbuild/SOURCES
         tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
 
@@ -46,5 +41,5 @@ jobs:
       with:
         name: bash-tui
         path: |
-          ${HOME}/*.rpm
+          $HOME/rpmbuild/RPMS/**/*.rpm
 
