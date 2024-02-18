@@ -42,5 +42,5 @@ jobs:
       with:
         name: bash-tui
         path: |
-          $HOME/*.rpm
-          $HOME/x86_64/*.rpm
+          ${{ github.workspace }}/bash-tui-*.src.rpm
+          ${{ github.workspace }}/x86_64/bash-tui-*.rpm
