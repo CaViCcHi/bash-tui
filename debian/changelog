@@ -1,6 +1,5 @@
-bash-tui (1.0-1) unstable; urgency=low
+bash-tui (0.9.8) unstable; urgency=low
 
   * Initial release.
 
-	-- Matteo Bignotti <gugoll@gmail.com>  Sat, 17 Feb 2024 19:23:58 -0800
-
+ -- Matteo Bignotti <gugoll@gmail.com>  Sat, 17 Feb 2024 19:23:58 -0800
