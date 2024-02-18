@@ -7,7 +7,6 @@ License:        GPL
 URL:            https://github.com/yourusername/bash-tui
 Source0:        bash-tui-%{tar_version}.tar.gz
 
-BuildRequires:  rpmbuild
 Requires:       bash
 
 %description
