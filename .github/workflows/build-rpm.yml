@@ -15,14 +15,14 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set Variables
-      id: variables # This ID is used to reference outputs from this step
       run: |
         echo "RPM_VERSION=$(echo ${GITHUB_REF#refs/heads/release/})" >> $GITHUB_ENV
         echo "RPM_RELEASE=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+        echo "TAR_VERSION=${RPM_VERSION}-${RPM_RELEASE}" >> $GITHUB_ENV
 
     - name: Prepare Source
       run: |
-        TAR_NAME="bash-tui-${{ env.RPM_VERSION }}-${{ env.RPM_RELEASE }}.tar.gz"
+        TAR_NAME="bash-tui-${{ env.TAR_VERSION }}.tar.gz"
         mkdir -p $HOME/rpmbuild/SOURCES
         tar czf $HOME/rpmbuild/SOURCES/$TAR_NAME --exclude=.git .
 
@@ -30,11 +30,11 @@ jobs:
       run: |
         rpmbuild -ba bash-tui.spec \
           --define "_sourcedir $HOME/rpmbuild/SOURCES" \
-          --define "tar_version $TAR_VERSION" \
-          --define "rpm_version $RPM_VERSION" \
-          --define "rpm_release $RPM_RELEASE" \
+          --define "tar_version ${{ env.TAR_VERSION }}" \
+          --define "rpm_version ${{ env.RPM_VERSION }}" \
+          --define "rpm_release ${{ env.RPM_RELEASE }}" \
           --define "_srcrpmdir $HOME" \
-          --define "_rpmdir $HOME" 
+          --define "_rpmdir $HOME"
 
     - name: Upload RPM
       uses: actions/upload-artifact@v2
