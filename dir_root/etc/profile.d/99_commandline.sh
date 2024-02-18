@@ -30,7 +30,7 @@ declare -A cline_REPO_COLORLIVE
 ## GIT: You can create custom methods
 cline_GRACEFUL[GIT]="/usr/bin/git rev-parse --is-inside-work-tree &>/dev/null 2>&1"
 cline_REMOTE[GIT]="/usr/bin/git remote -v | grep '^origin' | tail -1 | awk '{print \$2}'"
-cline_GET[GIT]="/usr/bin/git branch -a | grep '^*' | sed 's|^*[[:space:]]*||g'"
+cline_GET[GIT]="/usr/bin/git rev-parse --abbrev-ref HEAD"
 
 cline_REPO_PATTERN[GIT]="[%s]\n"
 cline_REPO_COLOR[GIT]=$dred

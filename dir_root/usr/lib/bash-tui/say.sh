@@ -39,9 +39,9 @@ _L_hor_=
 # l => Log Level : read up on _L_l_
 function say()
 {	
-	[ -z ${_L_l_} ] && echo -e "$1" && return 0 #- Okay... geee...
+	[ -z "${_L_l_}" ] && echo -e "$1" && return 0 #- Okay... geee...
   # This works with BASH-TUI
-  [ -z ${BTUI_n} ] && [ -e $BTUI_cache ] && . $BTUI_cache
+  [ -z "${BTUI_n}" ] && [ -n "$BTUI_cache" ] && [ -e "$BTUI_cache" ] && . "$BTUI_cache"
 	#Default
   local x= # Control variable
 	local c= # El Colore
@@ -49,6 +49,7 @@ function say()
 	local l=10 #- info
 	local b="[$(date '+%Y-%m-%d %H:%M:%S')]" #- What the log looks like
 	local m=$1
+  local doexit=0
 	# Parameters
 	if [ ! -z "${2}" ];then
 		if [ "${2}" = "debug" ]; then
@@ -61,6 +62,12 @@ function say()
 			c=${red}		
 			s=ERROR
       x=1
+		elif [ "${2}" = "exit" ]; then
+			l=0
+			c=${red}		
+			s=ERROR
+      x=1
+      doexit=1
 		elif [ "${2}" = "warning" ]; then
 			l=20
 			c=${yellow}
@@ -132,6 +139,8 @@ function say()
 	# Logging
 	echo -e "${b} ${m}" >> "${_L_dir_}/${_L_file_}"
 
+  (($doexit)) && exit 1
+return 0
 }
 
 say_clean()
