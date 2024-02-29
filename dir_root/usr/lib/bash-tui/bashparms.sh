@@ -4,7 +4,6 @@
 
 # This gets executed as . bashparms.sh 
 
-## I really fu**ing dislike that there's no wholesome way to grab parameters... so I'd say let's just fuc*ing improvise...
 # As of now you can nest this twice. I call bash lib with the possibility of parameters. and the main one. you can probably
 # play with caller and get the depth from a methodino
 
