@@ -14,7 +14,7 @@ _P_ocm="$_P_cm"
 _P_cm="$(caller 0 | awk '{print $2}')"
 [ -n "$_P_DEBUG_" ] && echo "and then '$(caller)' [1]> '$(caller 1)' [2]> '$(caller 2)'" 
 [ -n "$_P_DEBUG_" ] && echo "CM:$_P_cm"
-## I forgot what I had to put there... fuck - for now this is ok cause it's as if the line didn't exist
+##TODO
 ( [  ] && [ "$_P_cm" = 'main' ] ) && declare -A _BP=()
 [ -z "${!_BP[*]}" ] && declare -A _BP=()
 
