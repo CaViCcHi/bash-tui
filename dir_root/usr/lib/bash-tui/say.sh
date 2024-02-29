@@ -50,6 +50,7 @@ function say()
 	local b="[$(date '+%Y-%m-%d %H:%M:%S')]" #- What the log looks like
 	local m=$1
   local doexit=0
+  local exitnum=1
 	# Parameters
 	if [ ! -z "${2}" ];then
 		if [ "${2}" = "debug" ]; then
@@ -68,6 +69,7 @@ function say()
 			s=ERROR
       x=1
       doexit=1
+      [ ! -z $3 ] && exitnum=$3
 		elif [ "${2}" = "warning" ]; then
 			l=20
 			c=${yellow}
@@ -94,8 +96,9 @@ function say()
       x=50
 		fi
 	fi
+  # SKIP THIS if I have a doexit
   # If you have a third parameter
-  for me in 1; do # An old fisherman's trick
+  (( ! $doexit  )) && for me in 1; do # An old fisherman's trick
 	if [ ! -z $3 ]; then
     ## numbers cannot be used as color name in colorset
     [ -z $clr ] && [[ ${3} =~ ^[0-9]*$ ]] && l=$3 && continue # I didn't have a color but a number
@@ -114,9 +117,10 @@ function say()
     [ $x -eq 30 ] && c=$clr && continue
   fi
   done
+  # SKIP THIS if I have a doexit
   # What about a fourth? ahuahua
   # for now this is just a color
-  for me in 1; do # An old fisherman's trick
+  (( ! $doexit  )) && for me in 1; do # An old fisherman's trick
 	if [ ! -z $4 ]; then
     # And this third parameter is a color or is named like one :D
     # the assignments in the if happen only if the first one is met, bite me
@@ -139,7 +143,7 @@ function say()
 	# Logging
 	echo -e "${b} ${m}" >> "${_L_dir_}/${_L_file_}"
 
-  (($doexit)) && exit 1
+  (($doexit)) && exit $exitnum
 return 0
 }
 
