@@ -6,7 +6,7 @@
 _D_=
 ############
 
-_L_dir_=/var/log
+_L_dir_=~/var/log/say
 _L_file_=say_output.log
 _L_hor_dir_=$_L_dir_
 _L_hor_file_=$_L_file_
