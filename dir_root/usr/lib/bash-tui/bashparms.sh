@@ -34,8 +34,8 @@ if [ -n "$*" ];then
 				read k v <<< $(echo "${tp[$j]:2}" | sed 's|=| |')
 			else
 				# I would check the next param to see if it's a value or just another parm		
-				# so you keep -a AND the following parameter AND also the parameter by itself, why? shits and giggles I guess...
-				# NO, not shits and giggles, it's because if this has a parameter it might matter or not
+				# so you keep -a AND the following parameter AND also the parameter by itself, why?
+				# it's because if this has a parameter it might matter or not
 				k=${tp[$j]:2}
 				( [ -z "${tp[$(($j+1))]+_}" ] || [ "${tp[$(($j+1))]:0:1}" = '-' ] ) && v=1 || v=${tp[$(($j+1))]}
 			fi
