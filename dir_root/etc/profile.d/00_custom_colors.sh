@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 ##
 # COLORS
-# I must have farted a thousand times during these flights... muahahah
 # ~/.bash-tui/.cached-colors
 # BTUI_s[red]=34
 # BTUI_n[34]=red
