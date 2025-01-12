@@ -24,6 +24,7 @@ This library provides a command-line helper for Git and SVN, displaying detailed
 ```
 
 Example:
+
 ![Alt text](/elements/images/cmdline.png?raw=true "[Dina 5pt] 3-line commandline repository-aware")
 
 
@@ -91,6 +92,7 @@ Generates:
 ```
 
 A full example for --help is as shown:
+
 ![Alt text](/elements/images/gethelp.png?raw=true "[Dina 5pt] Get Help")
 
 
@@ -134,6 +136,7 @@ Comments will have to start at the beginning of the line and longer string don't
 ### Colors
 
 Run `colorshow` to list available colors. Example output:
+
 ![Alt text](/elements/images/colorshow_1.png?raw=true "[Dina 5pt] Colorshow")
 
 Customize colors with `colorset`:
