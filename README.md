@@ -148,6 +148,123 @@ say "how are you?" banana
 ![Alt text](/elements/images/colorshow_2.png?raw=true "[Dina 5pt] Colorshow banana")
 
 
+# Bash Utility Functions Library
+
+This library provides a collection of handy Bash functions to simplify various tasks, such as file management, process automation, and system utilities. Below is an overview of the available functions and their usage.
+
+---
+
+## Table of Contents
+- [File and Directory Utilities](#file-and-directory-utilities)
+- [Search and Locate](#search-and-locate)
+- [Process Utilities](#process-utilities)
+- [Package Management](#package-management)
+- [Version Comparison](#version-comparison)
+- [Character and String Utilities](#character-and-string-utilities)
+- [Other Utilities](#other-utilities)
+
+---
+
+## File and Directory Utilities
+
+### `allfiles <pattern>`
+Find all files in the current directory and its subdirectories, excluding `.git` and `.svn` repositories, matching the specified pattern.
+
+### `alldirs`
+List all directories in the current directory, excluding `.git` and `.svn`.
+
+### `allatest [loop]`
+Display the last 50 modified files in the current directory. Add `loop` to refresh the list every second.
+
+### `dcd <directory>`
+Change to a directory, or its parent if a file is provided. Returns to the previous directory if no argument is given.
+
+---
+
+## Search and Locate
+
+### `llocate <pattern>`
+Update a local `locate` database for the current directory and search for files matching the pattern.
+
+### `cgrep <pattern>`
+Recursively search for a pattern in the current directory with colorized output, excluding `.git`, `.svn`, and other system directories.
+
+### `perlocate <module>`
+Locate Perl modules by transforming module paths (e.g., `Module::Path`) into file paths.
+
+---
+
+## Process Utilities
+
+### `wakeup <name>`
+Send a Wake-on-LAN signal to a device by its predefined name.
+
+---
+
+## Package Management
+
+### `unrpm <rpm-file>`
+Extract the contents of an RPM file into a new directory named after the package.
+
+### `frpm <file> [return-rpm-only]`
+Identify the RPM package that contains a specific file. Optionally, return only the package name.
+
+---
+
+## Version Comparison
+
+### `rpmvercmp <version1> <version2>`
+Compare two RPM-style versions:
+- Returns `gt` if `version1 > version2`.
+- Returns `lt` if `version1 < version2`.
+- Returns `eq` if they are equal.
+
+---
+
+## Character and String Utilities
+
+### `chr <ascii-code>`
+Convert an ASCII code to its corresponding character.
+
+### `ord <character>`
+Get the ASCII code of a character.
+
+### `str_ord <string>`
+Display each character of a string alongside its ASCII code.
+
+### `str_join <delimiter> <strings...>`
+Join strings with the specified delimiter.
+
+---
+
+## Other Utilities
+
+### `tslog`
+Generate a timestamped log format for use with `awk`.
+
+### `blame <file>`
+Run `svn blame` on a file and view the output in `vim`.
+
+### `warp <file>`
+Navigate to the directory of a symbolic link.
+
+### `badlinks [-d]`
+List broken symbolic links in the current directory. Add `-d` to delete them.
+
+### `getUdevProps --device=/dev/<device> [properties...]`
+Retrieve Udev properties for a specified device.
+
+### `getUsbDevs [-b]`
+List all USB devices. Add `-b` to output only device names.
+
+### `c <file.c>`
+Compile a C file with `gcc`. Outputs a binary with the same base name.
+
+---
+
+## Notes
+- Some functions rely on external commands such as `gcc`, `rpm`, `locate`, and `udevadm`. Ensure these are installed and available in your environment.
+
 ## Contributions
 
 Contributions are welcome! Feel free to submit issues or pull requests.
